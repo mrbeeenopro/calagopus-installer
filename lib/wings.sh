@@ -2,6 +2,7 @@
 set -euo pipefail
 
 run_wings_install() {
+  install_docker_runtime
   log "Installing Calagopus Wings..."
   apt install -y calagopus-wings
   if ! command -v wings >/dev/null 2>&1 && command -v calagopus-wings >/dev/null 2>&1; then
