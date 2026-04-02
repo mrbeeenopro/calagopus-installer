@@ -19,7 +19,8 @@ run_panel_install() {
 
 install_database_stack() {
   log "Installing PostgreSQL + Valkey..."
-  apt install -y postgresql valkey
+  setup_postgresql_repo
+  apt install -y postgresql-18 valkey
   systemctl enable --now postgresql
   systemctl enable --now valkey-server || systemctl enable --now valkey
 }
@@ -48,16 +49,6 @@ SQL
     sudo -u postgres psql -c "ALTER DATABASE ${DB_NAME} OWNER TO ${DB_USER};"
   fi
   sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};"
-}
-
-install_docker_runtime() {
-  if command -v docker >/dev/null 2>&1; then
-    log "Docker already present."
-  else
-    log "Installing Docker runtime..."
-    curl -sSL https://get.docker.com/ | CHANNEL=stable bash
-  fi
-  systemctl enable --now docker
 }
 
 install_panel_docker() {
