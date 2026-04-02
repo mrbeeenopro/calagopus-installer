@@ -108,7 +108,7 @@ validate_inputs() {
 install_base_dependencies() {
   log "Installing base dependencies..."
   apt update
-  apt install -y curl ca-certificates gnupg jq lsb-release
+  apt install -y curl ca-certificates gnupg jq lsb-release postgresql-common
 }
 
 setup_calagopus_repo() {
@@ -116,6 +116,18 @@ setup_calagopus_repo() {
   curl -fsSL "https://packages.calagopus.com/pub.gpg" -o "/usr/share/keyrings/calagopus-archive-keyring.gpg"
   echo "deb [signed-by=/usr/share/keyrings/calagopus-archive-keyring.gpg] https://packages.calagopus.com/deb stable main" \
     | tee /etc/apt/sources.list.d/calagopus.list >/dev/null
+  apt update
+}
+
+setup_postgresql_repo() {
+  log "Adding PostgreSQL PGDG repository..."
+  install -d /usr/share/postgresql-common/pgdg
+  curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc
+
+  # shellcheck disable=SC1091
+  . /etc/os-release
+  echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main" \
+    > /etc/apt/sources.list.d/pgdg.list
   apt update
 }
 
@@ -132,6 +144,16 @@ escape_sql_literal() {
 
 random_key() {
   tr -dc 'a-zA-Z0-9' </dev/urandom | head -c 32
+}
+
+install_docker_runtime() {
+  if command -v docker >/dev/null 2>&1; then
+    log "Docker already present."
+  else
+    log "Installing Docker runtime..."
+    curl -sSL https://get.docker.com/ | CHANNEL=stable bash
+  fi
+  systemctl enable --now docker
 }
 
 write_panel_env() {
